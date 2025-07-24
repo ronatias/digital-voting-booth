@@ -1,13 +1,14 @@
 import { LightningElement, track } from 'lwc';
 import getAllParties from '@salesforce/apex/DigitalVotingBoothController.getAllParties';
 import submitVote from '@salesforce/apex/DigitalVotingBoothController.submitVote';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+
 
 export default class DigitalVotingBooth extends LightningElement {
     @track parties = [];
     @track selectedPartyId;
     @track isBlank = false;
     @track blankNote = '';
-    @track successMessage = '';
 
     connectedCallback() {
         this.loadParties();
@@ -76,14 +77,32 @@ export default class DigitalVotingBooth extends LightningElement {
     async submitVote() {
         try {
             await submitVote({ partyId: this.selectedPartyId, blankNote: this.isBlank ? this.blankNote : null });
-            this.successMessage = 'Your vote has been submitted successfully!';
+    
+            // Show success toast
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Vote Submitted',
+                message: 'Your vote has been submitted successfully!',
+                variant: 'success',
+                mode: 'dismissable'
+            }));
+    
+            // Reset form
             this.selectedPartyId = null;
             this.blankNote = '';
             this.isBlank = false;
         } catch (error) {
             console.error('Error submitting vote:', error);
+    
+            // Show error toast
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Error',
+                message: 'There was a problem submitting your vote.',
+                variant: 'error',
+                mode: 'sticky'
+            }));
         }
     }
+    
 
     getCardClass(partyId) {
         const base = 'party-box slds-box slds-m-around_small slds-text-align_center';
