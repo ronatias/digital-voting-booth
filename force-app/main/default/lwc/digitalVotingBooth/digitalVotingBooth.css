@@ -1,0 +1,39 @@
+/* Main party box container */
+.party-box {
+    height: 200px;
+    background-color: #f3f3f3;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+/* Hover effect on party box */
+.party-box:hover {
+    transform: scale(1.03);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Selected state */
+.selected {
+    border: 3px solid #1589ee;
+    background-color: #e3f3ff !important;
+}
+
+/* Large, bold party code */
+.party-code {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #16325c;
+}
+
+/* Smaller party description text */
+.party-desc {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #444;
+}

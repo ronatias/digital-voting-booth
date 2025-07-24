@@ -1,0 +1,68 @@
+<template>
+    <lightning-card title="Digital Voting Booth" icon-name="utility:choice">
+        <div class="slds-p-around_medium">
+
+            <!-- Show party cards if available -->
+            <template if:true={hasParties}>
+                <div class="slds-grid slds-wrap slds-gutters slds-align_absolute-center">
+
+                    <!-- Each party card -->
+                    <template for:each={filteredParties} for:item="party">
+                        <div key={party.Id} class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                            <div
+                                class={party.computedClass}
+                                data-id={party.Id}
+                                onclick={handlePartySelect}
+                            >
+                                <div class="party-code">{party.PartyCode__c}</div>
+                                <div class="party-desc">{party.Description__c}</div>
+                            </div>
+                        </div>
+                    </template>                    
+                    
+                    <!-- Blank Note Card -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                        <div class={blankCardClass} onclick={handleBlankSelect}>
+                            <div class="party-code">Blank Note</div>
+                            <template if:true={isBlank}>
+                                <div class="slds-m-top_small">
+                                    <lightning-textarea
+                                        label="Enter your note"
+                                        value={blankNote}
+                                        onchange={handleBlankNoteChange}
+                                    ></lightning-textarea>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                </div>
+            </template>
+
+            <!-- No valid parties -->
+            <template if:false={hasParties}>
+                <p class="slds-text-color_weak slds-text-align_center slds-text-heading_medium slds-m-vertical_large">
+                    No parties with valid Party Codes available to vote.
+                </p>
+            </template>
+
+            <!-- Submit button -->
+            <div class="slds-m-top_large slds-align_absolute-center">
+                <lightning-button
+                    label="Submit Vote"
+                    variant="brand"
+                    onclick={submitVote}
+                ></lightning-button>
+            </div>
+
+            <!-- Success message -->
+            <template if:true={successMessage}>
+                <div class="slds-notify slds-notify_alert slds-theme_success slds-m-top_medium" role="alert">
+                    <span class="slds-assistive-text">Success</span>
+                    <h2>{successMessage}</h2>
+                </div>
+            </template>
+
+        </div>
+    </lightning-card>
+</template>
