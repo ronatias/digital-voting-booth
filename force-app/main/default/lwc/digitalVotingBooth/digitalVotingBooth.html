@@ -1,6 +1,6 @@
 <template>
     <lightning-card title="Digital Voting Booth" icon-name="utility:choice">
-        <div class="slds-p-around_medium">
+        <div class="slds-p-around_medium" onclick={handleOuterClick}>
 
             <!-- Show party cards if available -->
             <template if:true={hasParties}>
@@ -23,16 +23,16 @@
                     <!-- Blank Note Card -->
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
                         <div class={blankCardClass} onclick={handleBlankSelect}>
-                            <div class="party-code">Blank Note</div>
-                            <template if:true={isBlank}>
-                                <div class="slds-m-top_small">
-                                    <lightning-textarea
-                                        label="Enter your note"
-                                        value={blankNote}
-                                        onchange={handleBlankNoteChange}
-                                    ></lightning-textarea>
-                                </div>
-                            </template>
+                                <div class="party-code">Blank Note</div>
+                                <template if:true={isBlank}>
+                                    <div class="slds-m-top_small">
+                                        <lightning-textarea
+                                            label="Enter your note"
+                                            value={blankNote}
+                                            onchange={handleBlankNoteChange}
+                                        ></lightning-textarea>
+                                    </div>
+                                </template>
                         </div>
                     </div>
 

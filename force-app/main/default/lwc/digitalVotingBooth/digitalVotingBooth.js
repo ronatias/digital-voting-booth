@@ -44,6 +44,19 @@ export default class DigitalVotingBooth extends LightningElement {
         return this.filteredParties.length > 0;
     }
 
+    handleOuterClick(event) {
+        const clickedElement = event.target;
+        if (
+            clickedElement.closest('.party-box') || 
+            clickedElement.closest('lightning-textarea')
+        ) {
+            return;
+        }
+        this.selectedPartyId = null;
+        this.isBlank = false;
+        this.blankNote = '';
+    }
+
     handlePartySelect(event) {
         const selectedId = event.currentTarget.dataset.id;
         this.selectedPartyId = selectedId;
