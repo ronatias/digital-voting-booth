@@ -31,31 +31,47 @@ public with sharing class DigitalVotingBoothController {
             throw new AuraHandledException('Insufficient field permissions.');
         }
 
-        // Fetch existing vote
+        Boolean isBlankVote = String.isNotBlank(blankNote) && partyId == null;
+
+        // Prepare formatted date
+        String formattedDate = Datetime.newInstance(Date.today(), Time.newInstance(0, 0, 0, 0)).format('MMM dd, yyyy');
+        String voteLabel;
+
+        if (isBlankVote) {
+            voteLabel = 'Vote - Blank - ' + formattedDate;
+        } else {
+            // Get party code
+            String partyCode = '';
+            if (partyId != null) {
+                Party__c p = [SELECT PartyCode__c FROM Party__c WHERE Id = :partyId LIMIT 1];
+                partyCode = p.PartyCode__c;
+            }
+            voteLabel = 'Vote - ' + partyCode + ' - ' + formattedDate;
+        }
+
+        // Check for existing vote
         List<Vote__c> existingVotes = [
-            SELECT Id, Party__c, BlankNote__c
+            SELECT Id
             FROM Vote__c
             WHERE User__c = :currentUserId
             LIMIT 1
         ];
 
-        // Set party only if partyId is not null and not a blank note
-        Boolean isBlankVote = String.isNotBlank(blankNote) && partyId == null;
-
         if (!existingVotes.isEmpty()) {
             Vote__c vote = existingVotes[0];
+            vote.Name = voteLabel;
             vote.LastVoteDate__c = System.now();
             vote.BlankNote__c = isBlankVote ? blankNote : null;
             vote.Party__c = isBlankVote ? null : partyId;
-            vote.Name = 'Vote - ' + currentUserId + ' - ' + Datetime.now().format('yyyyMMddHHmmss');
             update vote;
         } else {
-            Vote__c vote = new Vote__c();
-            vote.User__c = currentUserId;
-            vote.LastVoteDate__c = System.now();
-            vote.BlankNote__c = isBlankVote ? blankNote : null;
-            vote.Party__c = isBlankVote ? null : partyId;
-            vote.Name = 'Vote - ' + currentUserId + ' - ' + Datetime.now().format('yyyyMMddHHmmss');
+            Vote__c vote = new Vote__c(
+                Name = voteLabel,
+                User__c = currentUserId,
+                Party__c = isBlankVote ? null : partyId,
+                LastVoteDate__c = System.now(),
+                BlankNote__c = isBlankVote ? blankNote : null
+            );
             insert vote;
         }
     }

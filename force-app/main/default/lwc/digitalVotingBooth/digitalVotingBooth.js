@@ -39,10 +39,13 @@ export default class DigitalVotingBooth extends LightningElement {
                 };
             });
     }
-    
 
     get hasParties() {
         return this.filteredParties.length > 0;
+    }
+
+    get isSubmitDisabled() {
+        return !this.selectedPartyId && !this.isBlank;
     }
 
     handleOuterClick(event) {

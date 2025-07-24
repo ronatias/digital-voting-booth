@@ -1,5 +1,5 @@
 <template>
-    <lightning-card title="Digital Voting Booth" icon-name="utility:choice">
+    <lightning-card title="Digital Voting Booth" icon-name="standard:poll">
         <div class="slds-p-around_medium" onclick={handleOuterClick}>
 
             <!-- Show party cards if available -->
@@ -52,6 +52,7 @@
                     label="Submit Vote"
                     variant="brand"
                     onclick={submitVote}
+                    disabled={isSubmitDisabled}
                 ></lightning-button>
             </div>
 
