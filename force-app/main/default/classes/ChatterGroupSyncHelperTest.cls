@@ -31,7 +31,8 @@ private class ChatterGroupSyncHelperTest {
             MemberId = testUser.Id
         );
         insert groupMember;
-
+        delete  groupMember;
+        
         Test.startTest();
         // Call helper methods to enqueue jobs
         ChatterGroupSyncHelper.handleInsertAsync(new List<CollaborationGroupMember>{ groupMember });
