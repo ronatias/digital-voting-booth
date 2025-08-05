@@ -37,9 +37,7 @@ public class ChatterGroupSyncJob implements Queueable {
 
         // Load all public groups (group type = 'Regular') for mapping by name
         Map<String, Group> publicGroupsByName = new Map<String, Group>();
-        for (Group g : [
-            SELECT Id, Name FROM Group WHERE Type = 'Regular'
-        ]) {
+        for (Group g : [SELECT Id, Name FROM Group WHERE Type = 'Regular']) {
             publicGroupsByName.put(g.Name, g);
         }
 
@@ -64,6 +62,37 @@ public class ChatterGroupSyncJob implements Queueable {
         List<GroupMember> membersToDelete = new List<GroupMember>();
         List<ChatterGroupMemberSync__e> eventsToPublish = new List<ChatterGroupMemberSync__e>();
 
+        // Collect keys for potential deletions
+        Set<Id> groupIdsToCheck = new Set<Id>();
+        Set<Id> userIdsToCheck = new Set<Id>();
+        Map<String, SyncItem> deleteItemMap = new Map<String, SyncItem>();
+
+        for (SyncItem item : syncItems) {
+            CollaborationGroup cg = chatterGroups.get(item.chatterGroupId);
+            if (cg == null) continue;
+            Group pg = publicGroupsByName.get(cg.Name);
+            if (pg == null) continue;
+
+            if (!item.isInsert) {
+                groupIdsToCheck.add(pg.Id);
+                userIdsToCheck.add(item.userId);
+                deleteItemMap.put(pg.Id + '-' + item.userId, item);
+            }
+        }
+
+        // Bulk query for deletions (if allowed)
+        Map<String, GroupMember> deletableMembers = new Map<String, GroupMember>();
+        if (Schema.sObjectType.GroupMember.isDeletable() && !groupIdsToCheck.isEmpty() && !userIdsToCheck.isEmpty()) {
+            for (GroupMember gm : [
+                SELECT Id, GroupId, UserOrGroupId
+                FROM GroupMember
+                WHERE GroupId IN :groupIdsToCheck AND UserOrGroupId IN :userIdsToCheck
+            ]) {
+                deletableMembers.put(gm.GroupId + '-' + gm.UserOrGroupId, gm);
+            }
+        }
+
+        // Second loop to build final DML lists and events
         for (SyncItem item : syncItems) {
             CollaborationGroup cg = chatterGroups.get(item.chatterGroupId);
             if (cg == null) continue; // skip not found
@@ -76,12 +105,9 @@ public class ChatterGroupSyncJob implements Queueable {
                     membersToInsert.add(new GroupMember(GroupId = pg.Id, UserOrGroupId = item.userId));
                 }
             } else {
-                // Prepare user to be removed from Public group if permitted
-                if (Schema.sObjectType.GroupMember.isDeletable()) {
-                    membersToDelete.addAll([
-                        SELECT Id FROM GroupMember 
-                        WHERE GroupId = :pg.Id AND UserOrGroupId = :item.userId
-                    ]);
+                String key = pg.Id + '-' + item.userId;
+                if (deletableMembers.containsKey(key)) {
+                    membersToDelete.add(deletableMembers.get(key));
                 }
             }
             // Prepare platform event log for each sync action
